@@ -2,7 +2,6 @@
   "printWidth": 80,
   "useTabs": false,
   "tabWidth": 2,
-  "singleQuote": true,
-  "jsxBracketSameLine": false,
+  "singleQuote": false,
   "arrowParens": "avoid"
 }
