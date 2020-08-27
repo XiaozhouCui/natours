@@ -3,6 +3,9 @@ const tourController = require('../controllers/tourController');
 
 const router = express.Router();
 
+// Param middle ware
+router.param('id', tourController.checkId);
+
 // chain different methods to their common route string
 router
   .route('/')
