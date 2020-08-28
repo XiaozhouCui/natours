@@ -3,14 +3,14 @@ const tourController = require('../controllers/tourController');
 
 const router = express.Router();
 
-// Param middle ware
+// Param middleware
 router.param('id', tourController.checkId);
 
 // chain different methods to their common route string
 router
   .route('/')
   .get(tourController.getAllTours)
-  .post(tourController.createTour);
+  .post(tourController.checkBody, tourController.createTour); // inserted checkBody middleware
 router
   .route('/:id')
   .get(tourController.getTour)
