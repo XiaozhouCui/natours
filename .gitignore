@@ -1,3 +1,5 @@
 node_modules
 *.jpg
 *.png
+config.txt
+config.env
