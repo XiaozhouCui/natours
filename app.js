@@ -6,11 +6,15 @@ const userRouter = require('./routes/userRoutes');
 const app = express();
 
 // 1) MIDDLEWARES
+if (process.env.NODE_ENV === 'development') {
+  // log req and res info
+  app.use(morgan('dev'));
+}
 
-// log req and res info
-app.use(morgan('dev'));
 // convert json into js object as req.body
 app.use(express.json());
+// serve static files
+app.use(express.static(`${__dirname}/public`));
 
 app.use((req, res, next) => {
   console.log('Hello from the middleware');
