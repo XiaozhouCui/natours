@@ -39,7 +39,8 @@ const importData = async () => {
   process.exit();
 };
 
-// Delete all data from DB
+// Delete all data from DB.tours
+// "node dev-data/data/import-dev-data.js --delete"
 const deleteData = async () => {
   try {
     await Tour.deleteMany();
@@ -50,6 +51,8 @@ const deleteData = async () => {
   process.exit();
 };
 
+// Import json file into DB.tours
+// "node dev-data/data/import-dev-data.js --import"
 if (process.argv[2] === '--import') {
   importData();
 } else if (process.argv[2] === '--delete') {
