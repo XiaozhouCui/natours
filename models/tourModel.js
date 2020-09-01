@@ -51,6 +51,7 @@ const tourSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now(), // mongoose will auto parse date
+    select: false, // createdAt will be hidden from query output
   },
   startDates: [Date],
 });

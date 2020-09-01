@@ -5,24 +5,44 @@ const Tour = require('../models/tourModel');
 exports.getAllTours = async (req, res) => {
   try {
     // req.query: js object from query string "?duration=5&difficulty=easy&page=2"
-    // console.log(req.query);
 
     // BUILD QUERY
-    // 1) Filtering
+    // 1-A) Filtering
     const queryObj = { ...req.query };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
-    excludedFields.forEach(el => delete queryObj[el]);
+    excludedFields.forEach(el => delete queryObj[el]); // excluded pagination parameters from query string
 
-    // 2) Advanced Filtering: operators in query string >=, <=
-    // ?difficulty=easy&duration[gte]=5&price[lt]=1500
+    // 1-B) Advanced Filtering: operators in query string >=, <=
+    // "?difficulty=easy&duration[gte]=5&price[lt]=1500"
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
-    // console.log(JSON.parse(queryStr));
+    // console.log(JSON.parse(queryStr)); // { difficulty: 'easy', duration: { $gte: '5' }, price: { $lt: '1500' } }
 
-    // queryObj: excluded pagination parameters from query string
-    const query = Tour.find(JSON.parse(queryStr)); // don't await because need to sort and filter
+    let query = Tour.find(JSON.parse(queryStr)); // don't await because need to sort and filter
 
-    // 2) EXECUTE QUERY
+    // 2) Sorting
+    if (req.query.sort) {
+      // "?sort=-price,ratingsAverage"
+      const sortBy = req.query.sort.split(',').join(' ');
+      // console.log(sortBy); // '-price ratingsAverage'
+      // chain sort() to the query returned by Tour.find()
+      query = query.sort(sortBy); // mongoose sort('-price ratingsAverage'): sort by price descending then by rating ascending
+    } else {
+      // default sorting
+      query = query.sort('-ratingsQuantity');
+    }
+
+    // 3) Field limiting: only query the wanted properties
+    // ?fields=name,duration,price&...
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields); // query.select('name duration price')
+    } else {
+      // by default, exclude the '__v' property in response
+      query = query.select('-__v');
+    }
+
+    // EXECUTE QUERY
     const tours = await query;
 
     // const tours = await Tour.find()
