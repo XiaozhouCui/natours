@@ -1,5 +1,15 @@
 const Tour = require('../models/tourModel');
 
+// ALIAS MIDDLEWARE
+// pre-process req.query without URL query strings
+exports.aliasTopTours = (req, res, next) => {
+  // "?sort=-ratingsAverage,price&limit=5"
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+  next();
+};
+
 // ROUTE HANDLERS
 
 exports.getAllTours = async (req, res) => {
@@ -42,8 +52,20 @@ exports.getAllTours = async (req, res) => {
       query = query.select('-__v');
     }
 
+    // 4) Pagination
+    const page = Number(req.query.page) || 1;
+    const limit = req.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+    // "?page=3&limit=10"
+    query = query.skip(skip).limit(limit); // skip 20 results to start from page 3
+
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments(); // total number of documents in db
+      if (skip >= numTours) throw new Error('This page does not exist');
+    }
+
     // EXECUTE QUERY
-    const tours = await query;
+    const tours = await query; // await all above chained query methods
 
     // const tours = await Tour.find()
     //   .where('duration')

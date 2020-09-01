@@ -6,6 +6,11 @@ const router = express.Router();
 // Param middleware
 // router.param('id', tourController.checkId);
 
+// Alias: pre-fill the query object before going to getAllTours
+router
+  .route('/top-5-cheap')
+  .get(tourController.aliasTopTours, tourController.getAllTours); // alias middleware
+
 // chain different methods to their common route string
 router
   .route('/')
