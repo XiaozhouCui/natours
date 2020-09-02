@@ -11,6 +11,10 @@ router
   .route('/top-5-cheap')
   .get(tourController.aliasTopTours, tourController.getAllTours); // alias middleware
 
+// Aggregation piplines
+router.route('/tour-stats').get(tourController.getTourStats);
+router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
+
 // chain different methods to their common route string
 router
   .route('/')
