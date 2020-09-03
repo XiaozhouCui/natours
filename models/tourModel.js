@@ -57,6 +57,10 @@ const tourSchema = new mongoose.Schema(
       select: false, // createdAt will be hidden from query output
     },
     startDates: [Date],
+    secretTour: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     // options
@@ -88,6 +92,31 @@ tourSchema.pre('save', function (next) {
 //   console.log(doc); // doc is the final document (containing slug)
 //   next();
 // });
+
+// QUERY MIDDLEWARE
+// run before .find(), .findOne(), .findOneAndDelete(), .findOneAndUpdate() etc.
+tourSchema.pre(/^find/, function (next) {
+  // "this" point to the current query, not document
+  this.find({ secretTour: { $ne: true } }); // filter out secretTours
+  // set new property to "this" query object
+  this.start = Date.now();
+  next();
+});
+
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
+  // console.log(docs); // docs refer to just processed documents
+  next();
+});
+
+// AGGREGATION MIDDLEWARE
+tourSchema.pre('aggregate', function (next) {
+  // "this" point to current aggregation object, pipeline is the array of aggregate stages
+  console.log(this.pipeline());
+  // add new $match filter as the first element of pipeline array (before stage-1)
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  next();
+});
 
 const Tour = mongoose.model('Tour', tourSchema);
 
