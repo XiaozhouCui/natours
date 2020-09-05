@@ -28,7 +28,7 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       enum: {
         values: ['easy', 'medium', 'difficult'],
-        message: 'Difficulty is either: easy, medium, diffidult.',
+        message: 'Difficulty is either: easy, medium, diffidult',
       },
     },
     ratingsAverage: {

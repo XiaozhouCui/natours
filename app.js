@@ -30,12 +30,10 @@ app.use('/api/v1/users', userRouter);
 
 // catch all unhandled url
 app.all('*', (req, res, next) => {
-  // If any arg is passed in next(), it will be considered an error obj and will
-  // skip all other middlewares and go straight to the global error handling middleware
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-// Global error handling middleware: first arg = err
+// Global error handling middleware IN EXPRESS
 app.use(globalErrorHandler);
 
 module.exports = app;
