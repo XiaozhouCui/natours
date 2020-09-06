@@ -18,6 +18,7 @@ app.use(express.json());
 // serve static files
 app.use(express.static(`${__dirname}/public`));
 
+// time stamp middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();
