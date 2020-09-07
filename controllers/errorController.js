@@ -17,6 +17,12 @@ const handleValidationsErrorDB = err => {
   return new AppError(message, 400);
 };
 
+const handleJWTError = () =>
+  new AppError('Invalid token. Please login again!', 401);
+
+const handleJWTExpiredError = () =>
+  new AppError('Your token has expred. Please login again!', 401);
+
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -55,12 +61,18 @@ module.exports = (err, req, res, next) => {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {
     let error = { ...err };
-    // customise MongoDB error handling
+    // customise MongoDB ObjectID error handling
     if (error.name === 'CastError' || error.kind === 'ObjectId')
       error = handleCastErrorDB(error);
+    // customise duplicate field values
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+    // customise mongoose validation error handling
     if (error._message === 'Validation failed')
       error = handleValidationsErrorDB(error);
+    // customise JWT verification error handling (modified JWT)
+    if (error.name === 'JsonWebTokenError') error = handleJWTError();
+    // customise JWT expiry error handling
+    if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
     sendErrorProd(error, res);
   }
