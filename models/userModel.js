@@ -61,6 +61,16 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// set passwordChangedAt to right now when changing password
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1000; // allow 1 sec for JWT generation
+  next();
+});
+
+// INSTANCE METHODS
+
 // Instance method: password verification for login
 userSchema.methods.correctPassword = async function (
   candidatePassword,
@@ -89,7 +99,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 userSchema.methods.createPasswordResetToken = function () {
   // use Node built-in "crypto" module to generate a temporary token for user to reset password
   const resetToken = crypto.randomBytes(32).toString('hex');
-  // store temporary token in DB
+  // store ENCRYPTED token in DB
   this.passwordResetToken = crypto
     .createHash('sha256') // use "sha256" algorithm
     .update(resetToken)
@@ -98,6 +108,7 @@ userSchema.methods.createPasswordResetToken = function () {
   console.log({ resetToken }, this.passwordResetToken);
   // set the token to auto expire after 10 nimutes.
   this.passwordResetExpires = Date.now() + 10 * 1000 * 60;
+  // send UN-encrypted token to user via email
   return resetToken;
 };
 
