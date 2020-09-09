@@ -12,8 +12,23 @@ const signToken = id => {
   });
 };
 
+// SEND TOKEN & COOKIE
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000 // cookie expires after * days
+    ),
+    httpOnly: true, // cookie won't be modified by browser
+  };
+  // secure = true: only send cookie via httpS, only in production
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  // send token in COOKIE
+  res.cookie('jwt', token, cookieOptions);
+
+  // don't send password to client after SIGNUP.
+  user.password = undefined;
 
   res.status(statusCode).json({
     status: 'success',

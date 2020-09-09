@@ -21,6 +21,7 @@ router.patch(
 // USER ROUTES
 
 router.patch('/updateMe', authController.protect, userController.updateMe);
+router.delete('/deleteMe', authController.protect, userController.deleteMe);
 
 // chain different methods to their common route string
 router

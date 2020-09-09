@@ -46,9 +46,14 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean, // used to "delete" user accounts
+    default: true,
+    select: false, // hidden from client
+  },
 });
 
-// DOCUMENT PRE-SAVE MIDDLEWARES
+// DOCUMENT MIDDLEWARES: PRE-SAVE
 
 // Encryp password before it is saved into DB
 userSchema.pre('save', async function (next) {
@@ -69,9 +74,18 @@ userSchema.pre('save', function (next) {
   next();
 });
 
+// QUERY MIDDLEWARES: PRE-find/findOne/FindById...
+
+// hide the inactive user accounts
+userSchema.pre(/^find/, function (next) {
+  // "this" points to the current query
+  this.find({ active: { $ne: false } });
+  next();
+});
+
 // INSTANCE METHODS
 
-// Instance method: password verification for login
+// password verification for login
 userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
@@ -80,7 +94,7 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-// Instance method: handle password change after JWT was issued
+// handle password change after JWT was issued
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   // "this" current document
   if (this.passwordChangedAt) {
@@ -95,7 +109,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   return false;
 };
 
-// Instance method: generate password reset token
+// generate password reset token
 userSchema.methods.createPasswordResetToken = function () {
   // use Node built-in "crypto" module to generate a temporary token for user to reset password
   const resetToken = crypto.randomBytes(32).toString('hex');
