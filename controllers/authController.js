@@ -12,6 +12,18 @@ const signToken = id => {
   });
 };
 
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
 // SIGN UP FUNCTION
 
 exports.signup = catchAsync(async (req, res, next) => {
@@ -25,16 +37,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     role: req.body.role,
   });
 
-  const token = signToken(newUser._id);
-
-  res.status(201).json({
-    status: 'success',
-    requestedAt: req.requestTime,
-    token,
-    data: {
-      user: newUser,
-    },
-  });
+  createSendToken(newUser, 201, res);
 });
 
 // LOGIN FUNCTION
@@ -56,11 +59,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything ok, send token to client
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
 });
 
 // JWT AUTHENTICATION MIDDLEWARE
@@ -183,13 +182,33 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordConfirm = req.body.passwordConfirm;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
+
+  // 3) Update changedPasswordAt property for the user:
+  // user.passwordChangedAt = Date.now(); // handled by pre-save middleware
   await user.save();
 
-  // 3) Update changedPasswordAt property for the user
   // 4) Log the user in, send JWT
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
+});
+
+// LOGGED IN USERS UPDATE THEIR OWN PASSWORDS
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // 1) Get user from collection
+  const { passwordCurrent, password, passwordConfirm } = req.body;
+  // Do NOT use findByIdAndUpdate() on passwords, validation and pre-save middlewares won't work!
+  const user = await User.findById(req.user.id).select('+password');
+
+  // 2) Check if POSTed current password is correct (ask user to enter old password)
+  if (!(await user.correctPassword(passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is incorrect', 401));
+  }
+
+  // 3) If so, update password
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  // user.passwordChangedAt = Date.now(); // handled by pre-save middleware
+  await user.save();
+
+  // 4) Log user in, send JWT
+  createSendToken(user, 200, res);
 });

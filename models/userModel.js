@@ -48,7 +48,7 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
 });
 
-// DOCUMENT MIDDLEWARE
+// DOCUMENT PRE-SAVE MIDDLEWARES
 
 // Encryp password before it is saved into DB
 userSchema.pre('save', async function (next) {
