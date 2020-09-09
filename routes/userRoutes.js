@@ -4,6 +4,8 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
+// AUTHENTICATION ROUTES
+
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
@@ -15,6 +17,10 @@ router.patch(
   authController.protect,
   authController.updatePassword
 );
+
+// USER ROUTES
+
+router.patch('/updateMe', authController.protect, userController.updateMe);
 
 // chain different methods to their common route string
 router
