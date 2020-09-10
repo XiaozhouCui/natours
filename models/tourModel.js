@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./userModel');
 // const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
@@ -81,6 +82,31 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    startLocation: {
+      // GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: Array,
   },
   {
     // options
@@ -99,6 +125,14 @@ tourSchema.virtual('durationWeeks').get(function () {
 tourSchema.pre('save', function (next) {
   // console.log(this); // "this" point to currently processed document
   this.slug = slugify(this.name, { lower: true }); // add a new field "slug": "test-tour-1"
+  next();
+});
+
+// Save embeded "guides" documents when creating new tours
+tourSchema.pre('save', async function (next) {
+  // Initially, guides is an array of IDs
+  const guidesPromises = this.guides.map(async id => await User.findById(id)); // array of promises
+  this.guides = await Promise.all(guidesPromises); // guides is now an array of documents
   next();
 });
 

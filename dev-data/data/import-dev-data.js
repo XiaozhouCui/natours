@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const Tour = require('../../models/tourModel');
 
 // updata the process.env with config.env
-dotenv.config({ path: './config.env' });
+dotenv.config({ path: '../../config.env' });
 // console.log(process.env);
 
 const DB = process.env.DATABASE.replace(
@@ -24,9 +24,7 @@ mongoose
   });
 
 // Read JSON file into js object
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8')
-);
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
 
 // Import data into DB
 const importData = async () => {
