@@ -113,8 +113,9 @@ const tourSchema = new mongoose.Schema(
       },
     ],
   },
+  // options
   {
-    // options
+    // virtual fields: not stored in db but used in calculation
     toJSON: { virtuals: true }, // virtual properties to be part of json output
     toObject: { virtuals: true }, // virtual properties to be part of object output
   }
