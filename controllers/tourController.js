@@ -39,7 +39,8 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 
 exports.getTour = catchAsync(async (req, res, next) => {
   // req.params are strings, may need to be converted into obj
-  const tour = await Tour.findById(req.params.id);
+  // VIRTUAL POPULATE reviews
+  const tour = await Tour.findById(req.params.id).populate('reviews');
 
   if (!tour) return next(new AppError('No tour found with that ID', 404));
 

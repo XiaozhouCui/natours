@@ -112,21 +112,33 @@ const tourSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    // DO NOT reference indefinitely growing array (reviews)
+    // reviews: [{ type: mongoose.Schema.ObjectId, ref: 'Review' }],
   },
   // options
   {
-    // virtual fields: not stored in db but used in calculation
+    // allow virtual properties: not stored in db but used in calculation/res
     toJSON: { virtuals: true }, // virtual properties to be part of json output
     toObject: { virtuals: true }, // virtual properties to be part of object output
   }
 );
 
 // VIRTUAL PROPERTIES (not saved in db)
+
+// only show "durationWeeks" in response, not in db
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7; // "this" refers to current document - no arrow function here
 });
 
+// Virtually POPULATED reviews
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour', // "tour" field in Review model
+  localField: '_id', // '_id' in local Tour model is called "tour" in Reivew model
+});
+
 // DOCUMENT MIDDLEWARE
+
 // pre() middleware: runs before .save() and .create() (but not .insertMany())
 tourSchema.pre('save', function (next) {
   // console.log(this); // "this" point to currently processed document
@@ -154,6 +166,7 @@ tourSchema.pre('save', function (next) {
 // });
 
 // QUERY MIDDLEWARE
+
 // run before .find(), .findOne(), .findOneAndDelete(), .findOneAndUpdate() etc.
 tourSchema.pre(/^find/, function (next) {
   // "this" point to the current query, not document
