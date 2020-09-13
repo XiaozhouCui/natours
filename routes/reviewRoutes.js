@@ -9,13 +9,16 @@ const router = express.Router({ mergeParams: true });
 // GET /tour/:tourId/reviews (NESTED ROUTE)
 // POST /reviews (NORMAL ROUTE)
 
+router.route('/').get(reviewController.getAllReviews).post(
+  authController.protect,
+  authController.restrictTo('admin', 'user'),
+  reviewController.setTourUserIds, // middleware to allow nested routes
+  reviewController.createReview
+);
+
 router
-  .route('/')
-  .get(reviewController.getAllReviews)
-  .post(
-    authController.protect,
-    authController.restrictTo('admin', 'user'),
-    reviewController.createReview
-  );
+  .route('/:id')
+  .patch(reviewController.updateReview)
+  .delete(reviewController.deleteReview);
 
 module.exports = router;

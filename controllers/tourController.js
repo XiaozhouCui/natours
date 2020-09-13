@@ -2,6 +2,7 @@ const Tour = require('../models/tourModel');
 const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const factory = require('./handlerFactory');
 
 // ALIAS MIDDLEWARE
 // pre-process req.query without URL query strings
@@ -52,47 +53,22 @@ exports.getTour = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.createTour = catchAsync(async (req, res, next) => {
-  // const newTour = new Tour({});
-  // newTour.save();
-  const newTour = await Tour.create(req.body);
+// DRY: use generic factory functions to replace old function
+exports.createTour = factory.createOne(Tour);
+exports.updateTour = factory.updateOne(Tour);
+exports.deleteTour = factory.deleteOne(Tour);
 
-  res.status(201).json({
-    status: 'success',
-    requestedAt: req.requestTime,
-    data: {
-      tour: newTour,
-    },
-  });
-});
+// exports.deleteTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tour.findByIdAndDelete(req.params.id);
 
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true, // use tourModel's validation for update
-  });
+//   if (!tour) return next(new AppError('No tour found with that ID', 404));
 
-  if (!tour) return next(new AppError('No tour found with that ID', 404));
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
-
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
-
-  if (!tour) return next(new AppError('No tour found with that ID', 404));
-
-  // 204 no content
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+//   // 204 no content
+//   res.status(204).json({
+//     status: 'success',
+//     data: null,
+//   });
+// });
 
 // AGGREGATION PIPELINES
 
