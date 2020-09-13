@@ -1,11 +1,20 @@
 const express = require('express');
 const tourController = require('../controllers/tourController');
 const authController = require('../controllers/authController');
+const reviewRouter = require('./reviewRoutes');
 
 const router = express.Router();
 
 // Param middleware
 // router.param('id', tourController.checkId);
+
+// NESTED ROUTES
+
+// POST /tour/:tourId/reviews
+// GET /tour/:tourId/reviews
+
+// if NESTED route containes "/:id/reviews", redirect req to review router.
+router.use('/:tourId/reviews', reviewRouter);
 
 // Alias: pre-fill the query object before going to getAllTours
 router
