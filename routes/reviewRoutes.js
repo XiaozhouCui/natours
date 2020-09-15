@@ -11,7 +11,7 @@ const router = express.Router({ mergeParams: true });
 router.use(authController.protect); // Protects all routes after this middleware
 
 router.route('/').get(reviewController.getAllReviews).post(
-  authController.restrictTo('user'),
+  authController.restrictTo('admin', 'user'),
   reviewController.setTourUserIds, // middleware to allow nested routes
   reviewController.createReview
 );

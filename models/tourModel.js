@@ -60,11 +60,11 @@ const tourSchema = new mongoose.Schema(
     summary: {
       type: String,
       trim: true,
+      required: [true, 'A tour must have a summary'],
     },
     description: {
       type: String,
       trim: true,
-      required: [true, 'A tour must have a description'],
     },
     imageCover: {
       type: String,
@@ -122,6 +122,12 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true }, // virtual properties to be part of object output
   }
 );
+
+// DB INDEX
+
+// tourSchema.index({ price: 1 }); // use index to improve GET performance
+tourSchema.index({ price: 1, ratingsAverage: -1 }); // 1 for ascending order; -1 for descending
+tourSchema.index({ slug: 1 });
 
 // VIRTUAL PROPERTIES (not saved in db)
 

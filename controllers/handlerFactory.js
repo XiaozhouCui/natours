@@ -81,6 +81,7 @@ exports.getAll = Model =>
       .pagination();
 
     const doc = await features.query; // await all above chained query methods
+    // const doc = await features.query.explain(); // use .explain() to check db/query info
 
     // SEND RESPONSE
     res.status(200).json({
