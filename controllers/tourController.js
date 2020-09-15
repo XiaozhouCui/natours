@@ -1,7 +1,5 @@
 const Tour = require('../models/tourModel');
-const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
 const factory = require('./handlerFactory');
 
 // ALIAS MIDDLEWARE
@@ -16,59 +14,12 @@ exports.aliasTopTours = (req, res, next) => {
 
 // ROUTE HANDLERS
 
-// use catchAsync() wrapper function to get rid of try-catch blocks
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  // EXECUTE QUERY
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .pagination();
-
-  const tours = await features.query; // await all above chained query methods
-
-  // SEND RESPONSE
-  res.status(200).json({
-    status: 'success',
-    requestedAt: req.requestTime,
-    results: tours.length,
-    data: {
-      tours: tours,
-    },
-  });
-});
-
-exports.getTour = catchAsync(async (req, res, next) => {
-  // req.params are strings, may need to be converted into obj
-  // VIRTUAL POPULATE reviews
-  const tour = await Tour.findById(req.params.id).populate('reviews');
-
-  if (!tour) return next(new AppError('No tour found with that ID', 404));
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
-
 // DRY: use generic factory functions to replace old function
+exports.getAllTours = factory.getAll(Tour);
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 exports.createTour = factory.createOne(Tour);
 exports.updateTour = factory.updateOne(Tour);
 exports.deleteTour = factory.deleteOne(Tour);
-
-// exports.deleteTour = catchAsync(async (req, res, next) => {
-//   const tour = await Tour.findByIdAndDelete(req.params.id);
-
-//   if (!tour) return next(new AppError('No tour found with that ID', 404));
-
-//   // 204 no content
-//   res.status(204).json({
-//     status: 'success',
-//     data: null,
-//   });
-// });
 
 // AGGREGATION PIPELINES
 
