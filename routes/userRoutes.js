@@ -4,24 +4,30 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-// AUTHENTICATION ROUTES
+// AUTHENTICATION ROUTES (NO PROTECTION)
 
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
-
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
-router.patch(
-  '/updateMyPassword',
-  authController.protect,
-  authController.updatePassword
+// PROTECTED USER ROUTES START HERE
+
+router.use(authController.protect); // Protects ALL routes AFTER this middleware
+
+// CURRENT USER ROUTES
+router.patch('/updateMyPassword', authController.updatePassword);
+router.get(
+  '/me',
+  userController.getMe, // middleware to set req.params.id
+  userController.getUser // users/:id is acquired from getMe middleware
 );
+router.patch('/updateMe', userController.updateMe);
+router.delete('/deleteMe', userController.deleteMe);
 
-// USER ROUTES
+// ADMIN-ONLY ROUTES STARTS HERE
 
-router.patch('/updateMe', authController.protect, userController.updateMe);
-router.delete('/deleteMe', authController.protect, userController.deleteMe);
+router.use(authController.restrictTo('admin')); // Restrict ALL routes AFTER this middleware
 
 // chain different methods to their common route string
 router

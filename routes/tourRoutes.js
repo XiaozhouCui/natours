@@ -13,7 +13,7 @@ const router = express.Router();
 // POST /tour/:tourId/reviews
 // GET /tour/:tourId/reviews
 
-// if NESTED route containes "/:id/reviews", redirect req to review router.
+// if NESTED route containes "/:tourId/reviews", redirect req to reviewRouter.
 router.use('/:tourId/reviews', reviewRouter);
 
 // Alias: pre-fill the query object before going to getAllTours
@@ -23,18 +23,32 @@ router
 
 // Aggregation piplines
 router.route('/tour-stats').get(tourController.getTourStats);
-router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan);
+router
+  .route('/monthly-plan/:year')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide', 'guide'),
+    tourController.getMonthlyPlan
+  );
 
 // chain different methods to their common route string
 router
   .route('/')
-  .get(authController.protect, tourController.getAllTours)
+  .get(tourController.getAllTours)
   // .post(tourController.checkBody, tourController.createTour); // inserted checkBody middleware
-  .post(tourController.createTour); // inserted checkBody middleware
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.createTour
+  );
 router
   .route('/:id')
   .get(tourController.getTour)
-  .patch(tourController.updateTour)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.updateTour
+  )
   .delete(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide'),
