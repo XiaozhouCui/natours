@@ -200,13 +200,14 @@ tourSchema.post(/^find/, function (docs, next) {
 });
 
 // AGGREGATION MIDDLEWARE
-tourSchema.pre('aggregate', function (next) {
-  // "this" point to current aggregation object
-  // console.log(this.pipeline()); // pipeline is the array of aggregate stages
-  // add new $match filter as the first element of pipeline array (before stage-1)
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  next();
-});
+
+// tourSchema.pre('aggregate', function (next) {
+//   // "this" point to current aggregation object
+//   // console.log(this.pipeline()); // pipeline is the array of aggregate stages
+//   // add new $match filter as the first element of pipeline array (before stage-1)
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   next();
+// });
 
 const Tour = mongoose.model('Tour', tourSchema);
 

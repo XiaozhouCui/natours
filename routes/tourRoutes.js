@@ -31,13 +31,16 @@ router
     tourController.getMonthlyPlan
   );
 
-// Geospatial Queries: Finding Tours Within Radius
+// GEOSPATIAL QUERIES
 
+// Finding Tours Within Radius
 // /tours-within?distance=233&center=-40,45&unit=mi
 // /tours-within/233/center/-40,45/unit/mi
 router
   .route('/tours-within/:distance/center/:latlng/unit/:unit')
   .get(tourController.getToursWithin);
+
+router.route('/distances/:latlng/unit/:unit').get(tourController.getDistances);
 
 // chain different methods to their common route string
 router
