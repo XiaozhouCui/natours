@@ -55,7 +55,7 @@ reviewSchema.pre(/^find/, function (next) {
   next();
 });
 
-// Add (Class level) static methods for the Model
+// Add (Class level) STATIC methods for the Model
 // get stats of reviews for a selected tour
 reviewSchema.statics.calcAverageRatings = async function (tourId) {
   // aggregation pipeline, "this" is the current Model (Review)
@@ -76,17 +76,47 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
 
   // console.log(stats); // [ { _id: 5f606a45afbc980788c5296a, nRating: 5, avgRating: 4.8 } ]
 
-  await Tour.findByIdAndUpdate(tourId, {
-    ratingsQuantity: stats[0].nRating,
-    ratingsAverage: stats[0].avgRating,
-  });
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    });
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
+    });
+  }
 };
 
-// Call the calcAverageRatings() middleware each time when a new review is created
+// DOCUMENT MIDDLEWARE
+// Call the calcAverageRatings() middleware each time after a new review is saved to db
+
+// "post" because review need to be saved to db first before funning calcAverageRatings()
 reviewSchema.post('save', function () {
   // "this" points to current review
   // "this.constructor" points to the current Model (Review)
   this.constructor.calcAverageRatings(this.tour);
+});
+
+// QUERY MIDDLEWARES
+// Call the calcAverageRatings() middleware each time when a review is UPDATED or DELETED
+
+// Step-1: get current review doc before saving. "pre" because we need to access query before it is executed
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  // "this" points to the current query
+  // get current review doc from "this" query ans store it in "this.r"
+  this.r = await this.findOne();
+  // console.log(this.r);
+});
+
+// Step-2: calcAverageRatings after saving. "post" because review need to be saved to db first
+// "await this.findOne()" does NOT work in "post" because query ("this") is already executed
+reviewSchema.post(/^findOneAnd/, async function () {
+  // "this.r" is the current review doc defined in previous step
+  // "this.r.constructor" is the current Model (Review)
+  // "this.r.tour" is the tourId
+  await this.r.constructor.calcAverageRatings(this.r.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);
