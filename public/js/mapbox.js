@@ -1,6 +1,6 @@
 /* eslint-disable */
 const locations = JSON.parse(document.getElementById('map').dataset.locations);
-console.log(locations);
+// console.log(locations);
 
 mapboxgl.accessToken =
   'pk.eyJ1IjoieGlhb3pob3VjdWkiLCJhIjoiY2tmYWVjZnQ1MGNyYTJ1cWpocXc2cjlxZCJ9.KpVXF3EzwMPtVPULPwlHqQ';
@@ -8,7 +8,7 @@ mapboxgl.accessToken =
 var map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/xiaozhoucui/ckfag2jsq3cxz19t9ay9inkkm',
-  scrollZoom: false,
+  // scrollZoom: false,
   // center: [-118.113491, 34.111745],
   // zoom: 10,
   // interactive: false,
