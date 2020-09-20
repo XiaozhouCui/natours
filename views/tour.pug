@@ -1,6 +1,12 @@
 extends base
 include _reviewCard
 
+//- to load js file in front end, inject new head into base.pug head block
+block append head
+  script(defer, src='/js/mapbox.js')
+  script(src='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js')
+  link(href='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css' rel='stylesheet')
+
 mixin overviewBox(label, text, icon)
   .overview-box__detail
     svg.overview-box__icon
@@ -64,8 +70,9 @@ block content
       .picture-box
         img.picture-box__img(src=`/img/tours/${img}`, alt=`${tour.name} Tour ${i + 1}` class=`picture-box__img--${i + 1}`)
 
+  //- store tour.locations in html div (#map), to be used later by frontend (mapbox.js)
   section.section-map
-    #map
+    #map(data-locations=`${JSON.stringify(tour.locations)}`)
 
   section.section-reviews
     .reviews
