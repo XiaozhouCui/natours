@@ -36,13 +36,10 @@ const sendErrorDev = (err, req, res) => {
 
   // B) RENDERED WEBSITE (error.pug)
   console.error('ERROR!', err);
-  return res
-    .status(err.statusCode)
-    .header('Content-Security-Policy', "worker-src 'self' blob:")
-    .render('error', {
-      title: 'Something went wrong!',
-      msg: err.message,
-    });
+  return res.status(err.statusCode).render('error', {
+    title: 'Something went wrong!',
+    msg: err.message,
+  });
 };
 
 const sendErrorProd = (err, req, res) => {
@@ -67,25 +64,19 @@ const sendErrorProd = (err, req, res) => {
 
   // B) RENDERED WEBSITE
   if (err.isOperational) {
-    return res
-      .status(err.statusCode)
-      .header('Content-Security-Policy', "worker-src 'self' blob:")
-      .render('error', {
-        title: 'Something went wrong!',
-        msg: err.message,
-      });
+    return res.status(err.statusCode).render('error', {
+      title: 'Something went wrong!',
+      msg: err.message,
+    });
   }
   // Programming or other unknown error: don't leak error details to clients
   // 1) Log error
   console.error('ERROR!', err);
   // 2) Send generic message
-  return res
-    .status(err.statusCode)
-    .header('Content-Security-Policy', "worker-src 'self' blob:")
-    .render('error', {
-      title: 'Something went wrong!',
-      msg: 'Please try again later.',
-    });
+  return res.status(err.statusCode).render('error', {
+    title: 'Something went wrong!',
+    msg: 'Please try again later.',
+  });
 };
 
 // EXPRESS GLOBAL ERROR HANDLING MIDDLEWARE: first arg = err

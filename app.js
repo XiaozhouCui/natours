@@ -75,6 +75,7 @@ app.use(
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   // console.log(req.cookies);
+  res.header('Content-Security-Policy', "worker-src 'self' blob:");
   next();
 });
 
