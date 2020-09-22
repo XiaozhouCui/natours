@@ -7,10 +7,13 @@ exports.getOverview = catchAsync(async (req, res, next) => {
   // 2) Build template
   // 3) Render that template using tour data from 1)
 
-  res.status(200).render('overview', {
-    title: 'All Tours',
-    tours,
-  });
+  res
+    .status(200)
+    .header('Content-Security-Policy', "worker-src 'self' blob:")
+    .render('overview', {
+      title: 'All Tours',
+      tours,
+    });
 });
 
 exports.getTour = catchAsync(async (req, res, next) => {
