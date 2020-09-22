@@ -23,32 +23,69 @@ const handleJWTError = () =>
 const handleJWTExpiredError = () =>
   new AppError('Your token has expred. Please login again!', 401);
 
-const sendErrorDev = (err, res) => {
-  res.status(err.statusCode).json({
-    status: err.status,
-    error: err,
-    message: err.message,
-    stack: err.stack, // error stack trace
-  });
+const sendErrorDev = (err, req, res) => {
+  // A) API
+  if (req.originalUrl.startsWith('/api')) {
+    return res.status(err.statusCode).json({
+      status: err.status,
+      error: err,
+      message: err.message,
+      stack: err.stack, // error stack trace
+    });
+  }
+
+  // B) RENDERED WEBSITE (error.pug)
+  console.error('ERROR!', err);
+  return res
+    .status(err.statusCode)
+    .header('Content-Security-Policy', "worker-src 'self' blob:")
+    .render('error', {
+      title: 'Something went wrong!',
+      msg: err.message,
+    });
 };
 
-const sendErrorProd = (err, res) => {
-  // Operational, trusted error: send message to client
-  if (err.isOperational) {
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-    });
+const sendErrorProd = (err, req, res) => {
+  // A) API
+  if (req.originalUrl.startsWith('/api')) {
+    // Operational, trusted error: send message to client
+    if (err.isOperational) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+      });
+    }
     // Programming or other unknown error: don't leak error details to clients
-  } else {
     // 1) Log error
     console.error('ERROR!', err);
     // 2) Send generic message
-    res.status(500).json({
+    return res.status(500).json({
       status: 'error',
       message: 'Something went very wrong!',
     });
   }
+
+  // B) RENDERED WEBSITE
+  if (err.isOperational) {
+    return res
+      .status(err.statusCode)
+      .header('Content-Security-Policy', "worker-src 'self' blob:")
+      .render('error', {
+        title: 'Something went wrong!',
+        msg: err.message,
+      });
+  }
+  // Programming or other unknown error: don't leak error details to clients
+  // 1) Log error
+  console.error('ERROR!', err);
+  // 2) Send generic message
+  return res
+    .status(err.statusCode)
+    .header('Content-Security-Policy', "worker-src 'self' blob:")
+    .render('error', {
+      title: 'Something went wrong!',
+      msg: 'Please try again later.',
+    });
 };
 
 // EXPRESS GLOBAL ERROR HANDLING MIDDLEWARE: first arg = err
@@ -58,9 +95,11 @@ module.exports = (err, req, res, next) => {
   err.status = err.status || 'error'; // err.status = 'fail' if status = 404
 
   if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, res);
+    sendErrorDev(err, req, res);
   } else if (process.env.NODE_ENV === 'production') {
     let error = { ...err };
+    error.message = err.message; // fix bug
+
     // customise MongoDB ObjectID error handling
     if (error.name === 'CastError' || error.kind === 'ObjectId')
       error = handleCastErrorDB(error);
@@ -74,6 +113,6 @@ module.exports = (err, req, res, next) => {
     // customise JWT expiry error handling
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
 
-    sendErrorProd(error, res);
+    sendErrorProd(error, req, res);
   }
 };
