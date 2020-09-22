@@ -77,6 +77,16 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+// LOGOUT FUNCTION
+// send a new empty cookie to replace the existing jwt cookie
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 5 * 1000), // expire after 5 seconds
+    httpOnly: true,
+  });
+  res.status(200).json({ status: 'success' });
+};
+
 // JWT AUTHENTICATION MIDDLEWARE
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -120,33 +130,38 @@ exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 
-// Only for rendered pages, no errors!
+// Only for rendered pages. FRONT-END! no catchAsync! no error handlers!
 
-exports.isLoggedIn = catchAsync(async (req, res, next) => {
+exports.isLoggedIn = async (req, res, next) => {
   if (req.cookies.jwt) {
-    // 1) verify token
-    const decoded = await promisify(jwt.verify)(
-      req.cookies.jwt,
-      process.env.JWT_SECRET
-    );
+    try {
+      // 1) verify token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
 
-    // 2) Check if user still exists (for deleted users)
-    const currentUser = await User.findById(decoded.id);
-    if (!currentUser) {
+      // 2) Check if user still exists (for deleted users)
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+
+      // 3) Check if user changed password after the token was issued
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      // THERE IS A LOGGED IN USER
+      res.locals.user = currentUser; // res.locals: give PUG access to "user" variable
       return next();
+    } catch (err) {
+      // err because jwt verification failed, don't go to error handler!
+      return next(); // next() leads to PUG pages without locals.user, means no logged in user
     }
-
-    // 3) Check if user changed password after the token was issued
-    if (currentUser.changedPasswordAfter(decoded.iat)) {
-      return next();
-    }
-
-    // THERE IS A LOGGED IN USER
-    res.locals.user = currentUser; // res.locals: give PUG access to "user" variable
-    return next();
   }
   next();
-});
+};
 
 // ROLE AUTHORISATION MIDDLEWARE (must come AFTER jwt auth middleware)
 
