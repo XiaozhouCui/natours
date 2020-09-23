@@ -1,10 +1,6 @@
 const express = require('express');
-const multer = require('multer');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
-
-// user "multer" to upload images
-const upload = multer({ dest: 'public/img/users' })
 
 const router = express.Router();
 
@@ -29,7 +25,11 @@ router.get(
   userController.getMe, // middleware to set req.params.id
   userController.getUser // users/:id is acquired from getMe middleware
 );
-router.patch('/updateMe', upload.single('photo'), userController.updateMe);
+router.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.updateMe
+);
 router.delete('/deleteMe', userController.deleteMe);
 
 // ADMIN-ONLY ROUTES STARTS HERE
