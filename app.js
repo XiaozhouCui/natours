@@ -44,8 +44,11 @@ const limiter = rateLimit({
 // call rateLimit() will return a new function as middleware
 app.use('/api', limiter);
 
-// Body parser, reading data from body into req.body
+// Body parser, reading json data from body into req.body
 app.use(express.json({ limit: '10kb' }));
+
+// Body parser, reading url-encoded data from body into req.body
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Cookie parser, reading data from cookie into req.cookies
 app.use(cookieParser());
