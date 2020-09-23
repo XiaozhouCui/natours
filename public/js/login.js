@@ -28,8 +28,8 @@ export const logout = async () => {
       method: 'GET',
       url: 'http://localhost:3001/api/v1/users/logout',
     });
-    // hard-reload page from server, not from cach
-    if ((res.data.status = 'success')) location.reload(true);
+
+    if ((res.data.status = 'success')) location.assign('/');
   } catch (err) {
     showAlert('error', 'Error logging out! Try again.');
   }
