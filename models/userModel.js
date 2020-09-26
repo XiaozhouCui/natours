@@ -122,7 +122,7 @@ userSchema.methods.createPasswordResetToken = function () {
     .update(resetToken)
     .digest('hex');
 
-  console.log({ resetToken }, this.passwordResetToken);
+  // console.log({ resetToken }, this.passwordResetToken);
   // set the token to auto expire after 10 nimutes.
   this.passwordResetExpires = Date.now() + 10 * 1000 * 60;
   // send UN-encrypted token to user via email
